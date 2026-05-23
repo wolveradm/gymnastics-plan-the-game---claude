@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Plan The Game — Gymnastics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700;900&family=Barlow+Condensed:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#0a0a0a;color:#e8e8e8;min-height:100vh;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:#222;}
+.wv-root{font-family:'Barlow',sans-serif;min-height:100vh;background:#0a0a0a;}
+
+/* LOGIN */
+.lg-bg{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a0a;background-image:radial-gradient(ellipse 60% 50% at 50% 0%,#00D4FF0d 0%,transparent 70%);}
+.lg-card{width:100%;max-width:380px;padding:44px 36px;background:#111;border:1px solid #1e1e1e;border-radius:20px;box-shadow:0 0 0 1px #ffffff06 inset,0 40px 80px #00000080;}
+.lg-eyebrow{font-size:9px;letter-spacing:4px;color:#00D4FF;font-weight:700;margin-bottom:18px;}
+.lg-headline{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;color:#f0f0f0;line-height:1;margin-bottom:6px;}
+.lg-sub{font-size:11px;color:#444;margin-bottom:36px;letter-spacing:.5px;}
+.lg-label{display:block;font-size:9px;letter-spacing:2.5px;color:#444;font-weight:700;margin-bottom:7px;}
+.lg-input{width:100%;background:#0a0a0a;border:1.5px solid #1e1e1e;border-radius:10px;color:#e8e8e8;font-size:14px;padding:13px 15px;font-family:'Barlow',sans-serif;outline:none;transition:border-color .2s;margin-bottom:14px;}
+.lg-input:focus{border-color:#00D4FF55;}
+.lg-input::placeholder{color:#2e2e2e;}
+.lg-err{background:#1a0808;border:1px solid #ff333322;border-radius:8px;color:#ff6666;font-size:12px;padding:10px 14px;margin-bottom:14px;}
+.lg-btn{width:100%;background:#00D4FF;color:#0a0a0a;border:none;border-radius:10px;font-size:11px;font-weight:900;letter-spacing:2.5px;padding:15px;cursor:pointer;font-family:'Barlow',sans-serif;transition:opacity .2s,transform .1s;margin-top:4px;}
+.lg-btn:hover{opacity:.9;transform:translateY(-1px);}
+.lg-btn:disabled{opacity:.5;transform:none;}
+.lg-footer{margin-top:28px;font-size:10px;color:#2a2a2a;text-align:center;letter-spacing:.5px;}
+
+/* HEADER */
+.hdr{height:58px;background:#111;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100;}
+.hdr-left{display:flex;align-items:center;gap:10px;}
+.hdr-icon{width:36px;height:36px;border-radius:10px;background:#0a0a0a;border:1px solid #1e1e1e;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.hdr-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:4px;color:#e8e8e8;}
+.hdr-prog{font-size:9px;letter-spacing:2px;color:#00D4FF;}
+.hdr-right{display:flex;align-items:center;gap:8px;}
+.coach-tag{background:#00D4FF;color:#0a0a0a;font-size:8px;font-weight:900;letter-spacing:2px;padding:3px 9px;border-radius:20px;}
+.user-tag{background:#161616;border:1px solid #1e1e1e;border-radius:20px;padding:5px 13px;font-size:11px;color:#666;}
+.out-btn{background:transparent;border:1px solid #1e1e1e;border-radius:8px;color:#444;cursor:pointer;padding:6px 12px;font-size:11px;font-family:'Barlow',sans-serif;font-weight:600;letter-spacing:.5px;transition:all .2s;}
+.out-btn:hover{background:#e8e8e8;color:#0a0a0a;border-color:#e8e8e8;}
+
+/* TABS */
+.tabs{display:flex;background:#111;border-bottom:1px solid #1a1a1a;}
+.tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:13px 8px;font-size:9px;font-weight:700;letter-spacing:2.5px;color:#444;background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Barlow',sans-serif;transition:all .2s;}
+.tab.on{color:#e8e8e8;border-bottom-color:#00D4FF;}
+.tab-badge{background:#00D4FF;color:#0a0a0a;font-size:8px;font-weight:900;padding:2px 6px;border-radius:10px;}
+
+/* HERO */
+.hero{background:#111;padding:22px 18px 18px;}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+.hero-eyebrow{font-size:9px;letter-spacing:3px;color:#00D4FF;font-weight:700;margin-bottom:5px;}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;color:#f0f0f0;line-height:1;margin-bottom:3px;}
+.hero-range{font-size:11px;color:#444;}
+.stat-group{display:flex;gap:8px;}
+.stat-box{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:12px;padding:12px 14px;text-align:center;min-width:58px;}
+.stat-n{font-family:'Bebas Neue',sans-serif;font-size:26px;color:#00D4FF;line-height:1;}
+.stat-l{font-size:8px;letter-spacing:1.5px;color:#444;margin-top:1px;}
+.prog-bar-row{display:flex;justify-content:space-between;margin-bottom:7px;}
+.prog-text{font-size:11px;color:#555;}
+.prog-pct{font-size:12px;color:#00D4FF;font-weight:700;}
+.prog-track{height:5px;background:#1a1a1a;border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,#00D4FF,#00ffcc);border-radius:3px;transition:width .5s ease;}
+.prog-count{font-size:10px;color:#333;text-align:right;margin-top:5px;}
+
+/* SESSION BAR */
+.sess-bar{background:#111;border-top:1px solid #1a1a1a;padding:12px 18px;}
+.sess-info{font-size:11px;color:#444;margin-bottom:9px;}
+.sess-info span{color:#aaa;font-weight:600;}
+.done-btn{width:100%;background:#00D4FF;color:#0a0a0a;border:none;border-radius:12px;font-size:11px;font-weight:900;letter-spacing:2px;padding:15px;cursor:pointer;font-family:'Barlow',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.done-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 24px #00D4FF33;}
+.done-btn:disabled{background:#161616;color:#333;cursor:not-allowed;}
+.toast{background:#0a1f18;border-top:2px solid #00D4FF;padding:12px 18px;font-size:12px;color:#00D4FF;font-weight:700;text-align:center;}
+
+/* BLOCKS */
+.blks{padding:14px 14px 0;display:flex;flex-direction:column;gap:12px;max-width:680px;margin:0 auto;}
+.blk{background:#111;border:1px solid #1a1a1a;border-radius:18px;overflow:hidden;}
+.blk-head{padding:16px 18px;border-bottom:1px solid #161616;}
+.blk-head-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.blk-num{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:3px;color:#333;}
+.blk-pill{font-size:8px;font-weight:900;letter-spacing:2px;padding:3px 9px;border-radius:6px;}
+.blk-rounds{margin-left:auto;font-size:9px;color:#333;letter-spacing:1.5px;font-weight:700;}
+.blk-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;letter-spacing:1px;color:#e8e8e8;}
+.blk-obs{font-size:11px;color:#444;line-height:1.65;margin-top:8px;border-left:2px solid #1e1e1e;padding-left:10px;}
+
+/* MOVE ROWS */
+.mv-row{display:flex;align-items:center;gap:10px;padding:12px 18px;border-top:1px solid #161616;transition:background .15s;}
+.mv-row:hover{background:#131313;}
+.mv-row.done{opacity:.35;}
+.mv-idx{width:22px;height:22px;border-radius:7px;background:#161616;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#2e2e2e;flex-shrink:0;}
+.mv-info{flex:1;min-width:0;}
+.mv-name{font-size:13px;font-weight:600;color:#d8d8d8;margin-bottom:2px;transition:all .2s;}
+.mv-name.done{text-decoration:line-through;color:#333;}
+.mv-det{font-size:10px;color:#3a3a3a;font-weight:500;letter-spacing:.5px;}
+.mv-acts{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.yt-a{background:#cc0000;border:none;border-radius:8px;color:#fff;padding:7px 9px;display:flex;align-items:center;text-decoration:none;cursor:pointer;transition:opacity .2s;flex-shrink:0;}
+.yt-a:hover{opacity:.8;}
+.edit-a{background:transparent;border:1px solid #1e1e1e;border-radius:8px;color:#333;padding:7px 8px;cursor:pointer;display:flex;align-items:center;transition:all .2s;}
+.edit-a:hover{background:#e8e8e8;color:#0a0a0a;border-color:#e8e8e8;}
+.chk-btn{border:1.5px solid #1e1e1e;border-radius:8px;cursor:pointer;padding:5px 6px;display:flex;align-items:center;background:transparent;transition:all .2s;}
+.chk-btn.done{background:#00D4FF;border-color:#00D4FF;}
+.chk-btn:hover:not(.done){border-color:#00D4FF44;}
+
+/* CALENDAR */
+.cal-wrap{padding:16px;max-width:680px;margin:0 auto;}
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
+.cal-nav-btn{background:#161616;border:1px solid #1e1e1e;border-radius:10px;color:#aaa;cursor:pointer;padding:9px 14px;font-size:14px;transition:all .2s;line-height:1;}
+.cal-nav-btn:hover{background:#e8e8e8;color:#0a0a0a;border-color:#e8e8e8;}
+.cal-month-label{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:#f0f0f0;}
+.cal-year{font-size:11px;color:#444;text-align:center;margin-top:1px;letter-spacing:2px;}
+.cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;}
+.cal-dow{text-align:center;font-size:9px;font-weight:700;letter-spacing:1.5px;color:#2e2e2e;padding:4px 0;}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-day{border-radius:10px;padding:8px 4px;text-align:center;min-height:62px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;border:1.5px solid transparent;cursor:pointer;transition:all .2s;position:relative;}
+.cal-day.out-month{background:transparent;cursor:default;border-color:transparent;}
+.cal-day.weekend{background:#111;border-color:#161616;cursor:default;}
+.cal-day.normal{background:#161616;border-color:#1a1a1a;}
+.cal-day.normal:hover{border-color:#00D4FF33;background:#1a1a1a;}
+.cal-day.cycle{background:#161616;border-color:#00D4FF22;}
+.cal-day.cycle:hover{border-color:#00D4FF66;background:#0d1f26;}
+.cal-day.done-day{background:#0d0d0d;border-color:#00D4FF;}
+.cal-day.today-day{border-color:#00D4FF !important;box-shadow:0 0 0 1px #00D4FF22;}
+.day-num-label{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;line-height:1;}
+.cal-day.normal .day-num-label,.cal-day.cycle .day-num-label,.cal-day.weekend .day-num-label{color:#555;}
+.cal-day.done-day .day-num-label{color:#00D4FF;}
+.cal-day.out-month .day-num-label{color:#1e1e1e;}
+.cal-day.today-day .day-num-label{color:#00D4FF;}
+.day-check-icon{font-size:15px;line-height:1;}
+.day-dot{width:5px;height:5px;border-radius:50%;background:#00D4FF22;margin-top:2px;}
+.day-cycle-dot{width:5px;height:5px;border-radius:50%;background:#00D4FF66;margin-top:2px;}
+.cal-legend{display:flex;gap:14px;margin-top:18px;flex-wrap:wrap;}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:10px;color:#444;font-weight:500;}
+.leg-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+.cal-summary{margin-top:16px;background:#111;border:1px solid #1a1a1a;border-radius:16px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;}
+.sum-lbl{font-size:9px;letter-spacing:2px;color:#444;margin-bottom:4px;}
+.sum-val{font-family:'Bebas Neue',sans-serif;font-size:32px;color:#00D4FF;line-height:1;}
+.sum-of{font-size:14px;color:#333;}
+.sum-pct{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:#00000088;backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;}
+.modal-box{background:#141414;border:1px solid #222;border-radius:20px;padding:26px 22px;width:100%;max-width:400px;box-shadow:0 24px 60px #000;}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;color:#e8e8e8;margin-bottom:3px;}
+.modal-sub{font-size:12px;color:#444;margin-bottom:16px;}
+.modal-inp{width:100%;background:#0a0a0a;border:1.5px solid #1e1e1e;border-radius:10px;color:#e8e8e8;font-size:13px;padding:12px 14px;font-family:'Barlow',sans-serif;outline:none;box-sizing:border-box;margin-bottom:16px;transition:border-color .2s;}
+.modal-inp:focus{border-color:#00D4FF55;}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;}
+.modal-cancel{background:transparent;border:1px solid #222;border-radius:8px;color:#555;font-size:12px;padding:9px 16px;cursor:pointer;font-family:'Barlow',sans-serif;font-weight:600;}
+.modal-save{background:#00D4FF;border:none;border-radius:8px;color:#0a0a0a;font-size:12px;font-weight:900;padding:9px 18px;cursor:pointer;font-family:'Barlow',sans-serif;letter-spacing:1px;}
+.app-footer{padding:20px;text-align:center;font-size:10px;color:#222;letter-spacing:1px;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+const USERS = [
+  { username:"marcio",   password:"wolvermaster", name:"Márcio Oliveira", isCoach:true  },
+  { username:"gustavo",  password:"wolver123",    name:"Gustavo",         isCoach:false },
+  { username:"piradora", password:"wolver456",    name:"Piradora",        isCoach:false },
+];
+
+const BLOCKS = [
+  { id:1, num:"01", title:"MOBILITY / ACTIVATION", rounds:"3 ROUNDS", accent:"#00D4FF", obs:"",
+    moves:[
+      {id:"m1",  name:"Espaçate Frontal",           det:'30" cada perna',  url:"https://www.youtube.com/shorts/U3ChsjohjvY"},
+      {id:"m2",  name:"Chest Stretch",               det:'30" cada braço', url:"https://youtu.be/tatrv67rou8?t=12"},
+      {id:"m3",  name:"Wall Press",                  det:'30"',             url:"https://youtu.be/69l-tqB23eI"},
+      {id:"m4",  name:"Pike Stretch",                det:'30"',             url:"https://youtu.be/ubRyzsFXQWU"},
+      {id:"m5",  name:"PVC Pass Through",            det:'30"',             url:"https://youtu.be/qyEM1zyqoaY?t=5"},
+    ]},
+  { id:2, num:"02", title:"LINHA METABÓLICA — CORE", rounds:"3 ROUNDS", accent:"#ffffff",
+    obs:"Fazer o trabalho de core com muita atenção na ativação do corpo inteiro. O domínio principal tem que ocorrer no solo para ser transferido para as posturas: de cabeça para baixo e em suspensão.",
+    moves:[
+      {id:"m6",  name:"Hollow Rock",          det:"10 reps", url:"https://youtu.be/J-wrOTzAPLg"},
+      {id:"m7",  name:"Alt V-Up",             det:"10 reps", url:"https://youtu.be/XGs0HhcrC7o"},
+      {id:"m8",  name:"Hollow Lateral",       det:"10 reps", url:"https://youtu.be/g5IkTSMR6Ms"},
+      {id:"m9",  name:"Canivete Lateral",     det:"10 reps", url:"https://youtu.be/g5IkTSMR6Ms"},
+      {id:"m10", name:"Super Man",            det:"10 reps", url:"https://youtu.be/JXmU6MHZkDo"},
+      {id:"m11", name:"Canivete Ventral",     det:"10 reps", url:"https://youtu.be/JXmU6MHZkDo"},
+      {id:"m12", name:"Hollow Hip Extension", det:'10"',     url:"https://youtu.be/4MzosadoEh4"},
+      {id:"m13", name:"L-Sit Leg Lifts",      det:"20 reps", url:"https://youtu.be/Yl7jiHQM9LI"},
+      {id:"m14", name:"Faster Alt Leg Lifts", det:"20 reps", url:"https://youtu.be/5Chtzg-gECA"},
+    ]},
+  { id:3, num:"03", title:"HANDSTAND PRACTICE", rounds:"3 ROUNDS", accent:"#00D4FF",
+    obs:"A entrada do handstand é um passo a passo. Realize 3 repetições de cada fase.",
+    moves:[
+      {id:"m15", name:"Cat and Cow",       det:'30"',          url:"https://youtu.be/YoHsGje9J2U"},
+      {id:"m16", name:"High Plank",        det:'30"',          url:"https://youtu.be/gLSCvAvvuFk?t=6"},
+      {id:"m17", name:"Entrada Handstand", det:"3 reps / fase",url:"https://youtu.be/weL5wzy-Wb8"},
+      {id:"m18", name:"Handstand Hold",    det:'20"',          url:"https://youtu.be/3S_wDozr_c0"},
+      {id:"m19", name:"Plank Pushup",      det:"10 reps",      url:"https://youtu.be/g3T_MuYw2D8"},
+    ]},
+  { id:4, num:"04", title:"BAR MUSCLE UP STRENGTH", rounds:"3 ROUNDS", accent:"#ffffff",
+    obs:"Realizar 3 rounds dos exercícios 1, 2 e 3, depois 3 rounds dos exercícios 4, 5 e 6. Foco nas posturas hollow e arch em suspensão.",
+    moves:[
+      {id:"m20", name:"Beat Swing",                      det:"10 reps", url:"https://youtu.be/x6pey96d3Zw"},
+      {id:"m21", name:"Scap Pull",                       det:"10 reps", url:"https://youtu.be/8QqqIj3Lj-k"},
+      {id:"m22", name:"Spaldart — Toes to Bar c/ apoio", det:"10 reps", url:"https://youtube.com/shorts/ITxA0kPayuA?feature=share"},
+      {id:"m23", name:"GHD Situp",                       det:"10 reps", url:"https://youtu.be/oFwt7WfnPcc"},
+      {id:"m24", name:"Strict Pullup",                   det:"10 reps", url:"https://youtu.be/HRV5YKKaeVw"},
+      {id:"m25", name:"Band Front Lever",                det:"10 reps", url:"https://youtu.be/IHKKIht_cAk"},
+      {id:"m26", name:"Dragon Flag",                     det:"10 reps", url:"https://www.youtube.com/watch?v=DWeTUv3CfkI"},
+    ]},
+];
+
+const TOTAL = BLOCKS.reduce((a,b)=>a+b.moves.length,0);
+const CYCLE_START = new Date(2026,4,22);
+const CYCLE_END   = new Date(2026,5,19);
+const MONTHS_PT   = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const DAYS_PT     = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+function isCycleDay(d){
+  const t=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  return t>=CYCLE_START&&t<=CYCLE_END;
+}
+
+// ICONS
+const YT = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+  </svg>
+);
+const Chk = ({on}) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke={on?"#0a0a0a":"#2e2e2e"} strokeWidth="3" width="12" height="12">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+const Pen = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+);
+const ChevL = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14">
+    <polyline points="15 18 9 12 15 6"/>
+  </svg>
+);
+const ChevR = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14">
+    <polyline points="9 18 15 12 9 6"/>
+  </svg>
+);
+
+// LOGIN
+function Login({onLogin}){
+  const [u,setU]=useState(""); const [p,setP]=useState("");
+  const [err,setErr]=useState(""); const [load,setLoad]=useState(false);
+  const go=()=>{
+    setLoad(true);setErr("");
+    setTimeout(()=>{
+      const found=USERS.find(x=>x.username===u.toLowerCase().trim()&&x.password===p);
+      if(found)onLogin(found);
+      else{setErr("Usuário ou senha incorretos. Fala com o Márcio! 🐺");setLoad(false);}
+    },500);
+  };
+  return (
+    <div className="lg-bg">
+      <div className="lg-card">
+        <div className="lg-eyebrow">PLAN THE GAME</div>
+        <div className="lg-headline">GYMNASTICS</div>
+        <div className="lg-sub">Base de Força e Posturas · 4 Semanas · 3× por semana</div>
+        <label className="lg-label">USUÁRIO</label>
+        <input className="lg-input" type="text" value={u} onChange={e=>setU(e.target.value)}
+          placeholder="seu usuário" onKeyDown={e=>e.key==="Enter"&&go()} autoCapitalize="none"/>
+        <label className="lg-label">SENHA</label>
+        <input className="lg-input" type="password" value={p} onChange={e=>setP(e.target.value)}
+          placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&go()}/>
+        {err&&<div className="lg-err">{err}</div>}
+        <button className="lg-btn" onClick={go} disabled={load}>{load?"ENTRANDO...":"ENTRAR NO TREINO"}</button>
+        <div className="lg-footer">Márcio Oliveira · CREF 020138-G/MG</div>
+      </div>
+    </div>
+  );
+}
+
+// EDIT MODAL
+function EditModal({mv,onSave,onClose}){
+  const [url,setUrl]=useState(mv.url||"");
+  return (
+    <div className="modal-ov" onClick={onClose}>
+      <div className="modal-box" onClick={e=>e.stopPropagation()}>
+        <div className="modal-title">Link YouTube</div>
+        <div className="modal-sub">{mv.name}</div>
+        <input className="modal-inp" type="url" value={url}
+          onChange={e=>setUrl(e.target.value)} placeholder="https://youtube.com/..." autoFocus/>
+        <div className="modal-btns">
+          <button className="modal-cancel" onClick={onClose}>Cancelar</button>
+          <button className="modal-save" onClick={()=>onSave(url)}>Salvar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// CALENDAR
+function Calendar({doneDays,onToggle}){
+  const today=new Date();
+  const [viewYear,setViewYear]=useState(today.getFullYear());
+  const [viewMonth,setViewMonth]=useState(today.getMonth());
+
+  const prevMonth=()=>{if(viewMonth===0){setViewMonth(11);setViewYear(y=>y-1);}else setViewMonth(m=>m-1);};
+  const nextMonth=()=>{if(viewMonth===11){setViewMonth(0);setViewYear(y=>y+1);}else setViewMonth(m=>m+1);};
+
+  const grid=useMemo(()=>{
+    const firstDay=new Date(viewYear,viewMonth,1).getDay();
+    const daysInMonth=new Date(viewYear,viewMonth+1,0).getDate();
+    const prevDays=new Date(viewYear,viewMonth,0).getDate();
+    const cells=[];
+    for(let i=firstDay-1;i>=0;i--)cells.push({date:new Date(viewYear,viewMonth-1,prevDays-i),current:false});
+    for(let d=1;d<=daysInMonth;d++)cells.push({date:new Date(viewYear,viewMonth,d),current:true});
+    const rem=42-cells.length;
+    for(let d=1;d<=rem;d++)cells.push({date:new Date(viewYear,viewMonth+1,d),current:false});
+    return cells;
+  },[viewYear,viewMonth]);
+
+  const todayStr=today.toISOString().slice(0,10);
+  const doneCount=Object.values(doneDays).filter(Boolean).length;
+  const cycleCount=useMemo(()=>{
+    let c=0;const s=new Date(CYCLE_START);const e=new Date(CYCLE_END);
+    while(s<=e){const dow=s.getDay();if(dow>=1&&dow<=5)c++;s.setDate(s.getDate()+1);}
+    return c;
+  },[]);
+  const freq=cycleCount?Math.round((doneCount/cycleCount)*100):0;
+
+  return (
+    <div className="cal-wrap">
+      <div className="cal-hdr">
+        <button className="cal-nav-btn" onClick={prevMonth}><ChevL/></button>
+        <div style={{textAlign:"center"}}>
+          <div className="cal-month-label">{MONTHS_PT[viewMonth]}</div>
+          <div className="cal-year">{viewYear}</div>
+        </div>
+        <button className="cal-nav-btn" onClick={nextMonth}><ChevR/></button>
+      </div>
+      <div className="cal-dow-row">
+        {DAYS_PT.map(d=><div key={d} className="cal-dow">{d}</div>)}
+      </div>
+      <div className="cal-days">
+        {grid.map((cell,i)=>{
+          const key=cell.date.toISOString().slice(0,10);
+          const dow=cell.date.getDay();
+          const isWeekend=dow===0||dow===6;
+          const isCycle=cell.current&&isCycleDay(cell.date)&&!isWeekend;
+          const isDone=!!doneDays[key]&&cell.current;
+          const isToday=key===todayStr&&cell.current;
+          let cls="cal-day ";
+          if(!cell.current)cls+="out-month";
+          else if(isDone)cls+="done-day";
+          else if(isWeekend)cls+="weekend";
+          else if(isCycle)cls+="cycle";
+          else cls+="normal";
+          if(isToday)cls+=" today-day";
+          const clickable=cell.current&&!isWeekend;
+          return (
+            <div key={i} className={cls} onClick={()=>{if(clickable)onToggle(key);}}>
+              <div className="day-num-label">{cell.date.getDate()}</div>
+              {isDone?<div className="day-check-icon">✅</div>
+               :isCycle?<div className="day-cycle-dot"/>
+               :cell.current&&!isWeekend?<div className="day-dot"/>
+               :<div style={{height:5}}/>}
+            </div>
+          );
+        })}
+      </div>
+      <div className="cal-legend">
+        <div className="leg-item"><div className="leg-dot" style={{background:"#0d0d0d",border:"1.5px solid #00D4FF"}}/> Treino feito</div>
+        <div className="leg-item"><div className="leg-dot" style={{background:"#161616",border:"1.5px solid #00D4FF44"}}/> Dia do macrociclo</div>
+        <div className="leg-item"><div className="leg-dot" style={{background:"#161616",border:"1.5px solid #1a1a1a"}}/> Dia útil</div>
+        <div className="leg-item"><div className="leg-dot" style={{background:"#111",border:"1.5px solid #161616"}}/> Fim de semana</div>
+      </div>
+      <div className="cal-summary">
+        <div>
+          <div className="sum-lbl">TREINOS NO CICLO</div>
+          <div className="sum-val">{doneCount}<span className="sum-of"> / {cycleCount}</span></div>
+        </div>
+        <div>
+          <div className="sum-lbl">FREQUÊNCIA</div>
+          <div className="sum-pct" style={{color:freq>=80?"#00D4FF":freq>=50?"#F5ECC8":"#cc4444"}}>{freq}%</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// MAIN APP
+function AppMain({user,onLogout}){
+  const [tab,setTab]=useState("workout");
+  const [blocks,setBlocks]=useState(BLOCKS);
+  const [checked,setChecked]=useState({});
+  const [doneDays,setDoneDays]=useState({});
+  const [editing,setEditing]=useState(null);
+  const [toast,setToast]=useState(false);
+
+  const checkedN=Object.values(checked).filter(Boolean).length;
+  const progress=Math.round((checkedN/TOTAL)*100);
+  const allDone=checkedN===TOTAL;
+  const doneN=Object.values(doneDays).filter(Boolean).length;
+
+  const allCycleDays=useMemo(()=>{
+    const days=[];const s=new Date(CYCLE_START);const e=new Date(CYCLE_END);
+    while(s<=e){const dow=s.getDay();if(dow>=1&&dow<=5)days.push(s.toISOString().slice(0,10));s.setDate(s.getDate()+1);}
+    return days;
+  },[]);
+  const nextDay=allCycleDays.find(k=>!doneDays[k]);
+  const nextDate=nextDay?new Date(nextDay+"T12:00:00"):null;
+
+  const toggleCheck=id=>setChecked(p=>({...p,[id]:!p[id]}));
+  const toggleDay=key=>setDoneDays(p=>({...p,[key]:!p[key]}));
+  const completeSession=()=>{
+    if(!nextDay)return;
+    setDoneDays(p=>({...p,[nextDay]:true}));
+    setChecked({});
+    setToast(true);
+    setTimeout(()=>setToast(false),3000);
+  };
+  const saveUrl=(blockId,movId,url)=>{
+    setBlocks(prev=>prev.map(b=>b.id===blockId?{...b,moves:b.moves.map(m=>m.id===movId?{...m,url}:m)}:b));
+    setEditing(null);
+  };
+
+  return (
+    <div className="wv-root">
+      <header className="hdr">
+        <div className="hdr-left">
+          <div className="hdr-icon">🐺</div>
+          <div>
+            <div className="hdr-name">PLAN THE GAME</div>
+            <div className="hdr-prog">GYMNASTICS · {progress}% COMPLETO</div>
+          </div>
+        </div>
+        <div className="hdr-right">
+          {user.isCoach&&<div className="coach-tag">COACH</div>}
+          <div className="user-tag">{user.name.split(" ")[0]}</div>
+          <button className="out-btn" onClick={onLogout}>Sair</button>
+        </div>
+      </header>
+
+      <div className="tabs">
+        <button className={`tab${tab==="workout"?" on":""}`} onClick={()=>setTab("workout")}>💪 TREINO</button>
+        <button className={`tab${tab==="calendar"?" on":""}`} onClick={()=>setTab("calendar")}>
+          📅 CALENDÁRIO {doneN>0&&<span className="tab-badge">{doneN}</span>}
+        </button>
+      </div>
+
+      {tab==="workout"&&<>
+        <div className="hero">
+          <div className="hero-top">
+            <div>
+              <div className="hero-eyebrow">BASE DE FORÇA E POSTURAS</div>
+              <div className="hero-title">GYMNASTICS</div>
+              <div className="hero-range">22 Mai → 20 Jun 2026 · 3× por semana</div>
+            </div>
+            <div className="stat-group">
+              <div className="stat-box"><div className="stat-n">{TOTAL}</div><div className="stat-l">MOVES</div></div>
+              <div className="stat-box"><div className="stat-n">4</div><div className="stat-l">BLOCOS</div></div>
+            </div>
+          </div>
+          <div className="prog-bar-row">
+            <span className="prog-text">Progresso do treino</span>
+            <span className="prog-pct">{progress}%</span>
+          </div>
+          <div className="prog-track"><div className="prog-fill" style={{width:`${progress}%`}}/></div>
+          <div className="prog-count">{checkedN} de {TOTAL} movimentos</div>
+        </div>
+
+        <div className="sess-bar">
+          {nextDate&&<div className="sess-info">Próximo: <span>{DAYS_PT[nextDate.getDay()]} {nextDate.getDate()}/{nextDate.getMonth()+1}</span></div>}
+          <button className="done-btn" onClick={completeSession} disabled={!allDone||!nextDay}>
+            {allDone?"✅ Concluir treino e registrar no calendário":`Marque os ${TOTAL-checkedN} movimentos restantes`}
+          </button>
+        </div>
+        {toast&&<div className="toast">✅ Treino registrado! Incrível, #FamiliaWolver 🐺</div>}
+
+        <div className="blks">
+          {blocks.map(b=>(
+            <div key={b.id} className="blk">
+              <div className="blk-head">
+                <div className="blk-head-row">
+                  <span className="blk-num">{b.num}</span>
+                  <span className="blk-pill" style={{background:b.accent==="#00D4FF"?"#00D4FF14":"#ffffff0d",color:b.accent==="#00D4FF"?"#00D4FF":"#888"}}>
+                    {b.accent==="#00D4FF"?"MOBILITY / SKILL":"STRENGTH / CORE"}
+                  </span>
+                  <span className="blk-rounds">{b.rounds}</span>
+                </div>
+                <div className="blk-title">{b.title}</div>
+                {b.obs&&<div className="blk-obs">{b.obs}</div>}
+              </div>
+              {b.moves.map((mv,idx)=>{
+                const done=!!checked[mv.id];
+                return (
+                  <div key={mv.id} className={`mv-row${done?" done":""}`}>
+                    <div className="mv-idx">{idx+1}</div>
+                    <div className="mv-info">
+                      <div className={`mv-name${done?" done":""}`}>{mv.name}</div>
+                      <div className="mv-det">{mv.det}</div>
+                    </div>
+                    <div className="mv-acts">
+                      {user.isCoach&&(
+                        <button className="edit-a" onClick={()=>setEditing({...mv,blockId:b.id})} title="Editar link">
+                          <Pen/>
+                        </button>
+                      )}
+                      <a className="yt-a" href={mv.url} target="_blank" rel="noopener noreferrer" title="Ver no YouTube">
+                        <YT/>
+                      </a>
+                      <button className={`chk-btn${done?" done":""}`} onClick={()=>toggleCheck(mv.id)}>
+                        <Chk on={done}/>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        <div className="app-footer">PLAN THE GAME · GYMNASTICS · #FamiliaWolver · Márcio Oliveira CREF 020138-G/MG</div>
+      </>}
+
+      {tab==="calendar"&&<Calendar doneDays={doneDays} onToggle={toggleDay}/>}
+
+      {editing&&(
+        <EditModal mv={editing}
+          onSave={(url)=>saveUrl(editing.blockId,editing.id,url)}
+          onClose={()=>setEditing(null)}/>
+      )}
+    </div>
+  );
+}
+
+function Root(){
+  const [user,setUser]=useState(null);
+  if(!user)return <Login onLogin={setUser}/>;
+  return <AppMain user={user} onLogout={()=>setUser(null)}/>;
+}
+
+const root=ReactDOM.createRoot(document.getElementById("root"));
+root.render(<Root/>);
+</script>
+</body>
+</html>
