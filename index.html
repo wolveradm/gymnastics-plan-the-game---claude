@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Plan The Game — Gymnastics</title>
+<title>Plan The Game — Ginástica</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700;900&family=Barlow+Condensed:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
@@ -167,9 +167,9 @@ const USERS = [
 ];
 
 const BLOCKS = [
-  { id:1, num:"01", title:"MOBILITY / ACTIVATION", rounds:"3 ROUNDS", accent:"#00D4FF", obs:"",
+  { id:1, num:"01", title:"MOBILIDADE / ATIVAÇÃO", rounds:"3 ROUNDS", accent:"#00D4FF", obs:"",
     moves:[
-      {id:"m1",  name:"Espaçate Frontal",           det:'30" cada perna',  url:"https://www.youtube.com/shorts/U3ChsjohjvY"},
+      {id:"m1",  name:"Esçaçate Frontal",           det:'30" cada perna',  url:"https://www.youtube.com/shorts/U3ChsjohjvY"},
       {id:"m2",  name:"Chest Stretch",               det:'30" cada braço', url:"https://youtu.be/tatrv67rou8?t=12"},
       {id:"m3",  name:"Wall Press",                  det:'30"',             url:"https://youtu.be/69l-tqB23eI"},
       {id:"m4",  name:"Pike Stretch",                det:'30"',             url:"https://youtu.be/ubRyzsFXQWU"},
@@ -188,7 +188,7 @@ const BLOCKS = [
       {id:"m13", name:"L-Sit Leg Lifts",      det:"20 reps", url:"https://youtu.be/Yl7jiHQM9LI"},
       {id:"m14", name:"Faster Alt Leg Lifts", det:"20 reps", url:"https://youtu.be/5Chtzg-gECA"},
     ]},
-  { id:3, num:"03", title:"HANDSTAND PRACTICE", rounds:"3 ROUNDS", accent:"#00D4FF",
+  { id:3, num:"03", title:"PRÁTICA DE PARADA DE MÃO", rounds:"3 ROUNDS", accent:"#00D4FF",
     obs:"A entrada do handstand é um passo a passo. Realize 3 repetições de cada fase.",
     moves:[
       {id:"m15", name:"Cat and Cow",       det:'30"',          url:"https://youtu.be/YoHsGje9J2U"},
@@ -197,7 +197,7 @@ const BLOCKS = [
       {id:"m18", name:"Handstand Hold",    det:'20"',          url:"https://youtu.be/3S_wDozr_c0"},
       {id:"m19", name:"Plank Pushup",      det:"10 reps",      url:"https://youtu.be/g3T_MuYw2D8"},
     ]},
-  { id:4, num:"04", title:"BAR MUSCLE UP STRENGTH", rounds:"3 ROUNDS", accent:"#ffffff",
+  { id:4, num:"04", title:"FORÇA MUSCLE UP NA BARRA", rounds:"3 ROUNDS", accent:"#ffffff",
     obs:"Realizar 3 rounds dos exercícios 1, 2 e 3, depois 3 rounds dos exercícios 4, 5 e 6. Foco nas posturas hollow e arch em suspensão.",
     moves:[
       {id:"m20", name:"Beat Swing",                      det:"10 reps", url:"https://youtu.be/x6pey96d3Zw"},
@@ -265,7 +265,7 @@ function Login({onLogin}){
     <div className="lg-bg">
       <div className="lg-card">
         <div className="lg-eyebrow">PLAN THE GAME</div>
-        <div className="lg-headline">GYMNASTICS</div>
+        <div className="lg-headline">GINÁSTICA</div>
         <div className="lg-sub">Base de Força e Posturas · 4 Semanas · 3× por semana</div>
         <label className="lg-label">USUÁRIO</label>
         <input className="lg-input" type="text" value={u} onChange={e=>setU(e.target.value)}
@@ -433,11 +433,11 @@ function AppMain({user,onLogout}){
           <div className="hdr-icon">🐺</div>
           <div>
             <div className="hdr-name">PLAN THE GAME</div>
-            <div className="hdr-prog">GYMNASTICS · {progress}% COMPLETO</div>
+            <div className="hdr-prog">GINÁSTICA · {progress}% COMPLETO</div>
           </div>
         </div>
         <div className="hdr-right">
-          {user.isCoach&&<div className="coach-tag">COACH</div>}
+          {user.isCoach&&<div className="coach-tag">TÉCNICO</div>}
           <div className="user-tag">{user.name.split(" ")[0]}</div>
           <button className="out-btn" onClick={onLogout}>Sair</button>
         </div>
@@ -455,11 +455,11 @@ function AppMain({user,onLogout}){
           <div className="hero-top">
             <div>
               <div className="hero-eyebrow">BASE DE FORÇA E POSTURAS</div>
-              <div className="hero-title">GYMNASTICS</div>
+              <div className="hero-title">GINÁSTICA</div>
               <div className="hero-range">22 Mai → 20 Jun 2026 · 3× por semana</div>
             </div>
             <div className="stat-group">
-              <div className="stat-box"><div className="stat-n">{TOTAL}</div><div className="stat-l">MOVES</div></div>
+              <div className="stat-box"><div className="stat-n">{TOTAL}</div><div className="stat-l">MOVIMENTOS</div></div>
               <div className="stat-box"><div className="stat-n">4</div><div className="stat-l">BLOCOS</div></div>
             </div>
           </div>
@@ -486,7 +486,7 @@ function AppMain({user,onLogout}){
                 <div className="blk-head-row">
                   <span className="blk-num">{b.num}</span>
                   <span className="blk-pill" style={{background:b.accent==="#00D4FF"?"#00D4FF14":"#ffffff0d",color:b.accent==="#00D4FF"?"#00D4FF":"#888"}}>
-                    {b.accent==="#00D4FF"?"MOBILITY / SKILL":"STRENGTH / CORE"}
+                    {b.accent==="#00D4FF"?"MOBILIDADE / HABILIDADE":"FORÇA / CORE"}
                   </span>
                   <span className="blk-rounds">{b.rounds}</span>
                 </div>
@@ -521,7 +521,7 @@ function AppMain({user,onLogout}){
             </div>
           ))}
         </div>
-        <div className="app-footer">PLAN THE GAME · GYMNASTICS · #FamiliaWolver · Márcio Oliveira CREF 020138-G/MG</div>
+        <div className="app-footer">PLAN THE GAME · GINÁSTICA · #FamiliaWolver · Márcio Oliveira CREF 020138-G/MG</div>
       </>}
 
       {tab==="calendar"&&<Calendar doneDays={doneDays} onToggle={toggleDay}/>}
