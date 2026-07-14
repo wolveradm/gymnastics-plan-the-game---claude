@@ -1,0 +1,9 @@
+config.toml
+storage/
+models/
+.venv/
+*.pyc
+__pycache__/
+.DS_Store
+debug/
+*.log
