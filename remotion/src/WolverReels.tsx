@@ -2,10 +2,12 @@ import React from 'react';
 import {
   AbsoluteFill,
   Easing,
+  Img,
   Sequence,
   interpolate,
   random,
   spring,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
@@ -20,35 +22,54 @@ export const CONFIG = {
   width: 1080,
   height: 1920,
   fps: 30,
-  durationInFrames: 240,
+  durationInFrames: 660, // 22s
+  // cores oficiais, extraídas dos SVGs da marca
   colors: {
     bg: '#0A0A0A',
     text: '#FFFFFF',
-    accent: '#FFD400',
-    accentAlt: '#E10600',
+    accent: '#F5FD07', // amarelo-limão "GAMES"
+    cyan: '#32F6F6', // ciano "WOLVER"
+    blue: '#009EDD', // azul do lobo
+    navy: '#09507D',
+    sky: '#8CE1F9',
+  },
+  logos: {
+    games: 'wolver-games.svg', // 601x119
+    wolver: 'wolver-logo.svg', // 330x322
   },
   safe: { x: 120, y: 250 },
   // [início, duração] em frames
   scenes: {
-    attention: { from: 0, duration: 45 },
-    lastWeek: { from: 45, duration: 75 },
-    now: { from: 120, duration: 75 },
-    dontWait: { from: 195, duration: 45 },
+    intro: { from: 0, duration: 60 },
+    attention: { from: 60, duration: 45 },
+    lastWeek: { from: 105, duration: 90 },
+    deadline: { from: 195, duration: 120 },
+    event: { from: 315, duration: 120 },
+    dontWait: { from: 435, duration: 90 },
+    final: { from: 525, duration: 135 },
   },
-  beat: 8, // ~0,25s a 30fps
   text: {
     attention: 'ATENÇÃO',
-    lastWeek: ['ÚLTIMA', 'SEMANA', 'DE', 'INSCRIÇÕES'],
-    highlightWord: 'ÚLTIMA',
-    event: 'WOLVER GAMES 2026',
-    eventTag: 'NOV 21',
-    now: ['A HORA', 'É', 'AGORA'],
-    pulseWord: 'AGORA',
-    urgency: 'VAGAS SE ESGOTANDO',
+    lastWeek: ['ÚLTIMA', 'SEMANA DE', 'INSCRIÇÕES'],
+    deadline: {
+      label: 'INSCRIÇÕES ATÉ',
+      day: '30',
+      month: 'OUTUBRO',
+      weekday: 'SEXTA-FEIRA',
+    },
+    event: {
+      label: 'O GRANDE DIA',
+      day: '21',
+      month: 'NOVEMBRO',
+      weekday: 'SÁBADO',
+    },
     dontWait: ['NÃO DEIXE', 'PRA', 'DEPOIS'],
-    struckWord: 'DEPOIS',
-    replacement: 'AGORA',
+    replacement: 'FAÇA AGORA',
     cta: 'GARANTA SUA VAGA',
+    recap: [
+      { label: 'INSCRIÇÕES ATÉ', value: '30/10' },
+      { label: 'EVENTO', value: '21/11' },
+    ],
   },
 };
 
@@ -57,6 +78,8 @@ const C = CONFIG.colors;
 // ============================================================
 // Utilitários
 // ============================================================
+const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
+
 const Safe: React.FC<{ children: React.ReactNode; style?: React.CSSProperties }> = ({
   children,
   style,
@@ -77,25 +100,33 @@ const Safe: React.FC<{ children: React.ReactNode; style?: React.CSSProperties }>
   </AbsoluteFill>
 );
 
-// Whip-pan: desfoque + deslocamento horizontal nos primeiros/últimos frames da cena
+// Whip-pan: desfoque + deslocamento horizontal na entrada e na saída da cena
 const WhipPan: React.FC<{ duration: number; children: React.ReactNode }> = ({
   duration,
   children,
 }) => {
   const frame = useCurrentFrame();
-  const inX = interpolate(frame, [0, 5], [400, 0], {
-    extrapolateRight: 'clamp',
-    easing: Easing.out(Easing.cubic),
-  });
-  const outX = interpolate(frame, [duration - 4, duration], [0, -400], {
-    extrapolateLeft: 'clamp',
-  });
+  const inX = interpolate(frame, [0, 5], [400, 0], { ...clamp, easing: Easing.out(Easing.cubic) });
+  const outX = interpolate(frame, [duration - 4, duration], [0, -400], clamp);
   const x = inX + outX;
   return (
     <AbsoluteFill style={{ transform: `translateX(${x}px)`, filter: `blur(${Math.abs(x) / 25}px)` }}>
       {children}
     </AbsoluteFill>
   );
+};
+
+// Flash branco curto no início de uma cena
+const Flash: React.FC<{ at?: number; peak?: number }> = ({ at = 0, peak = 0.8 }) => {
+  const frame = useCurrentFrame();
+  const o = interpolate(frame, [at, at + 2, at + 7], [0, peak, 0], clamp);
+  return <AbsoluteFill style={{ backgroundColor: 'white', opacity: o }} />;
+};
+
+const useShake = (start: number, amount = 24, length = 12) => {
+  const frame = useCurrentFrame();
+  const a = interpolate(frame, [start, start + length], [amount, 0], clamp);
+  return `translate(${(random(`sx${frame}`) - 0.5) * a}px, ${(random(`sy${frame}`) - 0.5) * a}px)`;
 };
 
 // ============================================================
@@ -108,6 +139,7 @@ const Background: React.FC = () => {
     const len = 120 + random(`l${i}`) * 260;
     const y = random(`y${i}`) * CONFIG.height;
     const x = ((frame * speed + random(`x${i}`) * 3000) % (CONFIG.width + len * 2)) - len;
+    const color = i % 3 === 0 ? '50,246,246' : '255,255,255';
     return (
       <div
         key={i}
@@ -117,12 +149,11 @@ const Background: React.FC = () => {
           top: y,
           width: len,
           height: 2,
-          background: `linear-gradient(90deg, transparent, rgba(255,255,255,${0.05 + random(`o${i}`) * 0.1}))`,
+          background: `linear-gradient(90deg, transparent, rgba(${color},${0.05 + random(`o${i}`) * 0.12}))`,
         }}
       />
     );
   });
-  // seed muda a cada 2 frames para o grão "ferver"
   const seed = Math.floor(frame / 2);
   return (
     <AbsoluteFill style={{ backgroundColor: C.bg }}>
@@ -142,43 +173,65 @@ const Background: React.FC = () => {
 };
 
 // ============================================================
+// Cena 0 — Abertura com a logo Wolver Games
+// ============================================================
+const SceneIntro: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const s = spring({ frame, fps, config: { damping: 12, stiffness: 200, mass: 0.6 } });
+  const glitch = frame % 14 < 3 && frame > 8;
+  const dx = glitch ? (random(`ig${frame}`) - 0.5) * 30 : 0;
+  return (
+    <AbsoluteFill style={{ transform: useShake(5, 18) }}>
+      <Safe>
+        <div style={{ position: 'relative', width: 840, transform: `scale(${interpolate(s, [0, 1], [2.4, 1])})` }}>
+          {glitch && (
+            <Img
+              src={staticFile(CONFIG.logos.games)}
+              style={{ position: 'absolute', width: 840, left: -10 + dx, opacity: 0.6, filter: 'hue-rotate(160deg)' }}
+            />
+          )}
+          <Img
+            src={staticFile(CONFIG.logos.games)}
+            style={{ width: 840, transform: `translateX(${dx / 2}px)`, filter: `drop-shadow(0 0 30px ${C.cyan}88)` }}
+          />
+        </div>
+        <div
+          style={{
+            marginTop: 50,
+            fontSize: 90,
+            letterSpacing: 30,
+            color: C.accent,
+            opacity: interpolate(frame, [14, 22], [0, 1], clamp),
+            transform: `translateY(${interpolate(frame, [14, 22], [30, 0], clamp)}px)`,
+          }}
+        >
+          2026
+        </div>
+      </Safe>
+      <Flash at={5} />
+    </AbsoluteFill>
+  );
+};
+
+// ============================================================
 // Cena 1 — ATENÇÃO
 // ============================================================
 const SceneAttention: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const s = spring({ frame, fps, config: { damping: 12, stiffness: 220, mass: 0.6 } });
-  const scale = interpolate(s, [0, 1], [3, 1]);
-  const impact = 6; // frame aproximado do impacto
-  const shakeAmt = interpolate(frame, [impact, impact + 12], [24, 0], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-  });
-  const sx = (random(`sx${frame}`) - 0.5) * shakeAmt;
-  const sy = (random(`sy${frame}`) - 0.5) * shakeAmt;
-  const flash = interpolate(frame, [impact, impact + 2, impact + 7], [0, 0.9, 0], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-  });
+  const impact = 6;
   const line = spring({ frame: frame - impact, fps, config: { damping: 20, stiffness: 160 } });
-
   return (
-    <AbsoluteFill style={{ transform: `translate(${sx}px, ${sy}px)` }}>
+    <AbsoluteFill style={{ transform: useShake(impact) }}>
       <Safe>
-        <div style={{ fontSize: 210, lineHeight: 1, transform: `scale(${scale})`, letterSpacing: 4 }}>
+        <div style={{ fontSize: 210, lineHeight: 1, transform: `scale(${interpolate(s, [0, 1], [3, 1])})`, letterSpacing: 4 }}>
           {CONFIG.text.attention}
         </div>
-        <div
-          style={{
-            marginTop: 40,
-            height: 16,
-            width: 760 * line,
-            background: C.accent,
-            boxShadow: `0 0 30px ${C.accent}`,
-          }}
-        />
+        <div style={{ marginTop: 40, height: 16, width: 760 * line, background: C.accent, boxShadow: `0 0 30px ${C.accent}` }} />
       </Safe>
-      <AbsoluteFill style={{ backgroundColor: 'white', opacity: flash }} />
+      <Flash at={impact} peak={0.9} />
     </AbsoluteFill>
   );
 };
@@ -188,177 +241,166 @@ const SceneAttention: React.FC = () => {
 // ============================================================
 const GlitchWord: React.FC<{ word: string }> = ({ word }) => {
   const frame = useCurrentFrame();
-  // glitch em rajadas curtas
   const active = frame % 18 < 4;
   const dx = active ? (random(`g${frame}`) - 0.5) * 40 : 0;
   const split = active ? 10 : 3;
   return (
     <span style={{ position: 'relative', display: 'inline-block', color: C.accent }}>
-      <span style={{ position: 'absolute', left: -split + dx, top: 0, color: '#FF003C', mixBlendMode: 'screen' }}>
-        {word}
-      </span>
-      <span style={{ position: 'absolute', left: split - dx, top: 0, color: '#00E5FF', mixBlendMode: 'screen' }}>
-        {word}
-      </span>
-      <span style={{ position: 'relative', transform: `translateX(${dx / 2}px)`, display: 'inline-block' }}>
-        {word}
-      </span>
+      <span style={{ position: 'absolute', left: -split + dx, top: 0, color: '#FF003C', mixBlendMode: 'screen' }}>{word}</span>
+      <span style={{ position: 'absolute', left: split - dx, top: 0, color: C.cyan, mixBlendMode: 'screen' }}>{word}</span>
+      <span style={{ position: 'relative', transform: `translateX(${dx / 2}px)`, display: 'inline-block' }}>{word}</span>
     </span>
   );
 };
 
 const SceneLastWeek: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const stagger = 7;
-  const words = CONFIG.text.lastWeek;
-  const bandStart = words.length * stagger + 4;
-  const band = spring({ frame: frame - bandStart, fps, config: { damping: 16, stiffness: 180 } });
-  const tag = spring({ frame: frame - bandStart - 8, fps, config: { damping: 9, stiffness: 200 } });
-
+  const stagger = 8;
+  const [first, ...rest] = CONFIG.text.lastWeek;
   return (
     <Safe>
-      <div style={{ fontSize: 150, lineHeight: 1.15 }}>
-        {words.map((w, i) => {
+      <div style={{ lineHeight: 1.1 }}>
+        {[first, ...rest].map((w, i) => {
           const local = frame - i * stagger;
-          const o = interpolate(local, [0, 6], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-          const y = interpolate(local, [0, 8], [60, 0], {
-            extrapolateLeft: 'clamp',
-            extrapolateRight: 'clamp',
-            easing: Easing.out(Easing.back(2)),
-          });
+          const o = interpolate(local, [0, 6], [0, 1], clamp);
+          const y = interpolate(local, [0, 8], [60, 0], { ...clamp, easing: Easing.out(Easing.back(2)) });
           return (
-            <div key={w} style={{ opacity: o, transform: `translateY(${y}px)` }}>
-              {w === CONFIG.text.highlightWord ? <GlitchWord word={w} /> : w}
+            <div key={w} style={{ opacity: o, transform: `translateY(${y}px)`, fontSize: i === 0 ? 250 : 140 }}>
+              {i === 0 ? <GlitchWord word={w} /> : w}
             </div>
           );
         })}
+      </div>
+    </Safe>
+  );
+};
+
+// ============================================================
+// Cartão de data (usado nas cenas de prazo e de evento)
+// ============================================================
+const DateCard: React.FC<{
+  label: string;
+  day: string;
+  month: string;
+  weekday: string;
+  color: string;
+  header?: React.ReactNode;
+}> = ({ label, day, month, weekday, color, header }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const labelIn = interpolate(frame, [0, 8], [0, 1], clamp);
+  const dayS = spring({ frame: frame - 8, fps, config: { damping: 10, stiffness: 200, mass: 0.7 } });
+  const monthIn = spring({ frame: frame - 18, fps, config: { damping: 16, stiffness: 180 } });
+  const weekIn = interpolate(frame, [28, 36], [0, 1], clamp);
+  const glow = 0.6 + 0.4 * Math.sin(frame / 6);
+  return (
+    <Safe>
+      {header}
+      <div
+        style={{
+          fontSize: 92,
+          letterSpacing: 4,
+          opacity: labelIn,
+          transform: `translateY(${(1 - labelIn) * 40}px)`,
+        }}
+      >
+        {label}
       </div>
       <div
         style={{
-          marginTop: 70,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 24,
-          transform: `translateX(${interpolate(band, [0, 1], [-1300, 0])}px)`,
+          fontSize: 560,
+          lineHeight: 0.95,
+          color,
+          transform: `scale(${interpolate(dayS, [0, 1], [2.5, 1])})`,
+          opacity: Math.min(1, dayS * 2),
+          textShadow: `0 0 ${60 * glow}px ${color}88`,
         }}
       >
-        <div style={{ background: C.text, color: C.bg, fontSize: 64, padding: '14px 28px', letterSpacing: 2 }}>
-          {CONFIG.text.event}
-        </div>
-        <div
-          style={{
-            background: C.accent,
-            color: C.bg,
-            fontSize: 56,
-            padding: '14px 20px',
-            transform: `scale(${tag}) rotate(-4deg)`,
-          }}
-        >
-          {CONFIG.text.eventTag}
-        </div>
+        {day}
       </div>
+      <div
+        style={{
+          background: color,
+          color: C.bg,
+          fontSize: 130,
+          lineHeight: 1,
+          padding: '14px 40px 18px',
+          transform: `translateX(${interpolate(monthIn, [0, 1], [-1300, 0])}px) skewX(-6deg)`,
+        }}
+      >
+        {month}
+      </div>
+      <div style={{ marginTop: 34, fontSize: 70, letterSpacing: 12, opacity: weekIn }}>{weekday}</div>
     </Safe>
   );
 };
 
-// ============================================================
-// Cena 3 — A HORA É AGORA
-// ============================================================
-const SceneNow: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
-  const beat = CONFIG.beat;
-  const lines = CONFIG.text.now;
-  const pulseStart = lines.length * beat;
-  const pulse =
-    frame >= pulseStart
-      ? interpolate((frame - pulseStart) % 10, [0, 4, 10], [1, 1.15, 1])
-      : 1;
-  const progress = interpolate(frame, [0, durationInFrames - 5], [0, 1], { extrapolateRight: 'clamp' });
-  const countdown = Math.max(0, Math.ceil(7 * (1 - progress)));
-
+const SceneDeadline: React.FC = () => {
+  const d = CONFIG.text.deadline;
   return (
-    <Safe>
-      <div style={{ fontSize: 190, lineHeight: 1.1 }}>
-        {lines.map((l, i) => {
-          // corte seco: aparece de uma vez no beat
-          const visible = frame >= i * beat;
-          const isPulse = l === CONFIG.text.pulseWord;
-          return (
-            <div
-              key={l}
-              style={{
-                visibility: visible ? 'visible' : 'hidden',
-                color: isPulse ? C.accent : C.text,
-                transform: isPulse ? `scale(${pulse})` : undefined,
-                fontSize: isPulse ? 260 : undefined,
-              }}
-            >
-              {l}
-            </div>
-          );
-        })}
-      </div>
-      <div style={{ marginTop: 80, width: 840 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 44, marginBottom: 16 }}>
-          <span>{CONFIG.text.urgency}</span>
-          <span style={{ color: C.accentAlt }}>{countdown} DIAS</span>
-        </div>
-        <div style={{ height: 22, background: 'rgba(255,255,255,0.15)' }}>
-          <div
-            style={{
-              height: '100%',
-              width: `${progress * 100}%`,
-              background: `linear-gradient(90deg, ${C.accent}, ${C.accentAlt})`,
-            }}
+    <AbsoluteFill style={{ transform: useShake(8, 20) }}>
+      <DateCard label={d.label} day={d.day} month={d.month} weekday={d.weekday} color={C.accent} />
+      <Flash at={8} peak={0.6} />
+    </AbsoluteFill>
+  );
+};
+
+const SceneEvent: React.FC = () => {
+  const frame = useCurrentFrame();
+  const e = CONFIG.text.event;
+  const logoIn = interpolate(frame, [0, 10], [0, 1], clamp);
+  return (
+    <AbsoluteFill style={{ transform: useShake(8, 20) }}>
+      <DateCard
+        label={e.label}
+        day={e.day}
+        month={e.month}
+        weekday={e.weekday}
+        color={C.cyan}
+        header={
+          <Img
+            src={staticFile(CONFIG.logos.games)}
+            style={{ width: 620, marginBottom: 40, opacity: logoIn, transform: `translateY(${(1 - logoIn) * -40}px)` }}
           />
-        </div>
-      </div>
-    </Safe>
+        }
+      />
+      <Flash at={8} peak={0.6} />
+    </AbsoluteFill>
   );
 };
 
 // ============================================================
-// Cena 4 — NÃO DEIXE PRA DEPOIS + CTA
+// Cena — NÃO DEIXE PRA DEPOIS → FAÇA AGORA
 // ============================================================
 const SceneDontWait: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
+  const { fps } = useVideoConfig();
   const lines = CONFIG.text.dontWait;
-  const drop = 4;
-  const strikeStart = lines.length * drop + 6;
-  const strike = interpolate(frame, [strikeStart, strikeStart + 6], [0, 1], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-  });
-  const replace = spring({ frame: frame - strikeStart - 6, fps, config: { damping: 10, stiffness: 220 } });
-  const ctaIn = spring({ frame: frame - strikeStart - 10, fps, config: { damping: 14 } });
-  // pulso leve no último 1s (30 frames) do vídeo
-  const pulseFrom = durationInFrames - fps;
-  const ctaPulse = frame >= pulseFrom ? 1 + 0.05 * Math.sin(((frame - pulseFrom) / fps) * Math.PI * 4) : 1;
-
+  const drop = 6;
+  const strikeStart = lines.length * drop + 14;
+  const strike = interpolate(frame, [strikeStart, strikeStart + 8], [0, 1], clamp);
+  const replace = spring({ frame: frame - strikeStart - 10, fps, config: { damping: 9, stiffness: 220 } });
+  const pulse = frame > strikeStart + 20 ? interpolate((frame - strikeStart - 20) % 12, [0, 5, 12], [1, 1.1, 1]) : 1;
   return (
     <Safe>
-      <div style={{ fontSize: 150, lineHeight: 1.1 }}>
+      <div style={{ fontSize: 170, lineHeight: 1.1 }}>
         {lines.map((l, i) => {
           const s = spring({ frame: frame - i * drop, fps, config: { damping: 8, stiffness: 200, mass: 0.7 } });
-          const y = interpolate(s, [0, 1], [-900, 0]);
-          const isStruck = l === CONFIG.text.struckWord;
+          const isLast = i === lines.length - 1;
           return (
-            <div key={l} style={{ transform: `translateY(${y}px)`, position: 'relative' }}>
-              <span style={{ position: 'relative', opacity: isStruck ? 1 - strike * 0.5 : 1 }}>
+            <div key={l} style={{ transform: `translateY(${interpolate(s, [0, 1], [-900, 0])}px)` }}>
+              <span style={{ position: 'relative', opacity: isLast ? 1 - strike * 0.6 : 1 }}>
                 {l}
-                {isStruck && (
+                {isLast && (
                   <span
                     style={{
                       position: 'absolute',
-                      left: -10,
+                      left: -14,
                       top: '50%',
-                      height: 16,
-                      width: `calc(${strike * 100}% + 20px)`,
-                      background: C.accentAlt,
-                      transform: 'translateY(-50%) rotate(-3deg)',
+                      height: 20,
+                      width: `calc(${strike * 100}% + 28px)`,
+                      background: '#FF2D2D',
+                      transform: 'translateY(-50%) rotate(-4deg)',
                     }}
                   />
                 )}
@@ -366,23 +408,85 @@ const SceneDontWait: React.FC = () => {
             </div>
           );
         })}
-        <div style={{ color: C.accent, fontSize: 190, transform: `scale(${replace})` }}>
-          {CONFIG.text.replacement}
-        </div>
       </div>
       <div
         style={{
-          marginTop: 50,
-          border: `8px solid ${C.accent}`,
-          padding: '22px 44px',
-          fontSize: 76,
-          opacity: ctaIn,
-          transform: `scale(${interpolate(ctaIn, [0, 1], [0.6, 1]) * ctaPulse})`,
-          boxShadow: `0 0 ${40 * (ctaPulse - 0.95) * 10}px ${C.accent}`,
+          marginTop: 40,
+          color: C.accent,
+          fontSize: 160,
+          whiteSpace: 'nowrap',
+          lineHeight: 1,
+          transform: `scale(${replace * pulse})`,
+          textShadow: `0 0 40px ${C.accent}66`,
+        }}
+      >
+        {CONFIG.text.replacement}
+      </div>
+    </Safe>
+  );
+};
+
+// ============================================================
+// Fechamento — logo oficial Wolver + CTA + resumo das datas
+// ============================================================
+const SceneFinal: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps, durationInFrames } = useVideoConfig();
+  const logo = spring({ frame, fps, config: { damping: 12, stiffness: 160 } });
+  const cta = spring({ frame: frame - 14, fps, config: { damping: 12, stiffness: 180 } });
+  const pulse = frame > 30 ? 1 + 0.04 * Math.sin(((frame - 30) / fps) * Math.PI * 3) : 1;
+  const fadeOut = interpolate(frame, [durationInFrames - 6, durationInFrames], [1, 0], clamp);
+  return (
+    <Safe style={{ justifyContent: 'space-between', opacity: fadeOut }}>
+      <Img
+        src={staticFile(CONFIG.logos.wolver)}
+        style={{
+          width: 470,
+          transform: `scale(${interpolate(logo, [0, 1], [0.5, 1])})`,
+          opacity: Math.min(1, logo * 1.5),
+          filter: `drop-shadow(0 0 40px ${C.blue}66)`,
+        }}
+      />
+      <div
+        style={{
+          width: 840,
+          background: C.accent,
+          color: C.bg,
+          fontSize: 104,
+          lineHeight: 1,
+          padding: '34px 0 40px',
+          opacity: cta,
+          transform: `translateY(${(1 - cta) * 80}px) scale(${pulse})`,
+          boxShadow: `0 0 ${50 * pulse}px ${C.accent}88`,
         }}
       >
         {CONFIG.text.cta}
       </div>
+      <div style={{ display: 'flex', gap: 30, width: 840 }}>
+        {CONFIG.text.recap.map((r, i) => {
+          const s = spring({ frame: frame - 26 - i * 6, fps, config: { damping: 14 } });
+          const color = i === 0 ? C.accent : C.cyan;
+          return (
+            <div
+              key={r.label}
+              style={{
+                flex: 1,
+                border: `6px solid ${color}`,
+                padding: '20px 0 24px',
+                opacity: s,
+                transform: `translateY(${(1 - s) * 60}px)`,
+              }}
+            >
+              <div style={{ fontSize: 40, letterSpacing: 3 }}>{r.label}</div>
+              <div style={{ fontSize: 120, lineHeight: 1, color }}>{r.value}</div>
+            </div>
+          );
+        })}
+      </div>
+      <Img
+        src={staticFile(CONFIG.logos.games)}
+        style={{ width: 520, opacity: interpolate(frame, [40, 50], [0, 1], clamp) }}
+      />
     </Safe>
   );
 };
@@ -391,24 +495,36 @@ const SceneDontWait: React.FC = () => {
 // Composição principal
 // ============================================================
 export const WolverReels: React.FC = () => {
-  const { scenes } = CONFIG;
+  const s = CONFIG.scenes;
   return (
     <AbsoluteFill>
       <Background />
-      <Sequence from={scenes.attention.from} durationInFrames={scenes.attention.duration}>
+      <Sequence from={s.intro.from} durationInFrames={s.intro.duration}>
+        <SceneIntro />
+      </Sequence>
+      <Sequence from={s.attention.from} durationInFrames={s.attention.duration}>
         <SceneAttention />
       </Sequence>
-      <Sequence from={scenes.lastWeek.from} durationInFrames={scenes.lastWeek.duration}>
-        <WhipPan duration={scenes.lastWeek.duration}>
+      <Sequence from={s.lastWeek.from} durationInFrames={s.lastWeek.duration}>
+        <WhipPan duration={s.lastWeek.duration}>
           <SceneLastWeek />
         </WhipPan>
       </Sequence>
-      {/* corte seco */}
-      <Sequence from={scenes.now.from} durationInFrames={scenes.now.duration}>
-        <SceneNow />
+      <Sequence from={s.deadline.from} durationInFrames={s.deadline.duration}>
+        <WhipPan duration={s.deadline.duration}>
+          <SceneDeadline />
+        </WhipPan>
       </Sequence>
-      <Sequence from={scenes.dontWait.from} durationInFrames={scenes.dontWait.duration}>
+      <Sequence from={s.event.from} durationInFrames={s.event.duration}>
+        <WhipPan duration={s.event.duration}>
+          <SceneEvent />
+        </WhipPan>
+      </Sequence>
+      <Sequence from={s.dontWait.from} durationInFrames={s.dontWait.duration}>
         <SceneDontWait />
+      </Sequence>
+      <Sequence from={s.final.from} durationInFrames={s.final.duration}>
+        <SceneFinal />
       </Sequence>
     </AbsoluteFill>
   );
