@@ -10,9 +10,10 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
-import {loadFont} from '@remotion/google-fonts/Anton';
+import {loadFont} from '@remotion/fonts';
 
-const {fontFamily} = loadFont();
+const fontFamily = 'Anton';
+loadFont({family: fontFamily, url: staticFile('fonts/Anton.woff2')});
 
 // ============================================================
 // CONFIGURAÇÃO — ajuste cores, tempos, textos e logo aqui
@@ -45,7 +46,7 @@ export const CONFIG = {
     cta: 'GARANTA SUA VAGA AGORA',
     urgency: 'VAGAS ENCERRANDO',
   },
-  logo: 'logo-wolver-games.png', // arquivo em /public
+  logo: 'logo-wolver-games.svg', // arquivo em /public
   whipFrames: 6, // duração do whip-pan entre cenas
 } as const;
 
@@ -326,7 +327,7 @@ const SceneCTA: React.FC = () => {
             filter: 'blur(30px)',
           }}
         />
-        <Img src={staticFile(CONFIG.logo)} style={{position: 'relative', width: 620, maxWidth: '100%', objectFit: 'contain'}} />
+        <Img src={staticFile(CONFIG.logo)} style={{position: 'relative', width: 840, maxWidth: '100%', objectFit: 'contain'}} />
       </div>
 
       <div
